@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import logo from "../assets/aligneyeFinalLogo.webp";
 import {
-  Facebook,
-  Twitter,
   Instagram,
   Youtube,
   Linkedin,
@@ -15,9 +13,40 @@ import {
 
 const Footer = () => {
   const [openSection, setOpenSection] = useState(null);
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
   const toggleSection = (section) => {
     setOpenSection(openSection === section ? null : section);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage("");
+
+    try {
+      const res = await fetch("http://localhost:4000/api/v1/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, source: "footer" }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setMessage("🎉 Thank you for subscribing!");
+        setEmail("");
+      } else {
+        setMessage(data.error || " Error in submitting the form.");
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage(" Server error. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -67,7 +96,7 @@ const Footer = () => {
           </div>
 
           {/* Right: Community CTA */}
-          {/* <div className="mt-10 lg:mt-0 lg:w-full lg:max-w-md">
+          <div className="mt-10 lg:mt-0 lg:w-full lg:max-w-md">
             <h3 className="text-lg font-semibold text-white mb-3 text-center lg:text-left">
               Join the Aligneye Community
             </h3>
@@ -75,25 +104,35 @@ const Footer = () => {
               Be part of a growing movement. Get early access, tips, and
               community-only perks.
             </p>
-            <form className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
+            <form
+              onSubmit={handleSubmit}
+              className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4"
+            >
               <input
                 type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="Your email address"
+                required
                 className="w-full sm:flex-grow px-4 py-2 rounded-full bg-neutral-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm sm:text-base"
               />
               <button
                 type="submit"
-                className="px-6 py-2 rounded-full bg-teal-600 hover:bg-teal-500 hover:cursor-pointer hover:scale-105 text-white font-medium transition text-sm sm:text-base whitespace-nowrap"
+                disabled={loading}
+                className="px-6 py-2 rounded-full bg-teal-600 hover:bg-teal-500 hover:cursor-pointer hover:scale-105 text-white font-medium transition text-sm sm:text-base whitespace-nowrap disabled:opacity-50"
               >
-                Join Now
+                {loading ? "Submitting..." : "Join Now"}
               </button>
             </form>
-          </div> */}
+            {message && (
+              <p className="text-center text-sm mt-3 text-gray-300">{message}</p>
+            )}
+          </div>
         </div>
 
         {/* Main Links Section -mobile version */}
-        <div className="lg:hidden">
-          {/* Mobile Collapsible Sections */}
+         <div className="lg:hidden">
+           {/* Mobile Collapsible Sections */}
           {["products", "company", "contact"].map((section) => (
             <div key={section} className="mb-6">
               <button

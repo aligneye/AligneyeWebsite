@@ -36,7 +36,7 @@ const HandbookReminder = () => {
   const email = formData.get("email");
 
   try {
-    const res = await fetch("/api/subscribe", {
+    const res = await fetch("http://localhost:4000/api/v1/subscribe", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, email, source: "handbook" }), // 👈 add source to track
