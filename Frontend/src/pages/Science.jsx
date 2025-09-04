@@ -7,11 +7,11 @@ const Science = () => {
       <div className="text-center space-y-6">
         <Atom size={48} className="mx-auto text-teal-500" />
         <h1 className="text-3xl sm:text-4xl font-bold">
-          Science Behind AlignEye
+          Science Behind Aligneye
         </h1>
         <p className="text-gray-400 max-w-md mx-auto">
           We're preparing an in-depth look at the research, technology, and
-          innovation that powers AlignEye. Stay tuned for the science.
+          innovation that powers Aligneye. Stay tuned for the science.
         </p>
       </div>
     </div>

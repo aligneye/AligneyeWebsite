@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { supabase } from "../supabaseClient";
 import { Gift, X, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -7,6 +8,7 @@ const HandbookReminder = () => {
   const [isClient, setIsClient] = useState(false);
   const [showIcon, setShowIcon] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     setIsClient(true);
@@ -25,42 +27,41 @@ const HandbookReminder = () => {
 
   const toggleChat = () => {
     setIsOpen((prev) => !prev);
-    if (isOpen) setSubmitted(false); // Reset form state on close
+    if (isOpen) {
+      setSubmitted(false);
+      setMessage("");
+    }
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const formData = new FormData(e.target);
-  const name = formData.get("name");
-  const email = formData.get("email");
+    const formData = new FormData(e.target);
+    const name = formData.get("name");
+    const email = formData.get("email");
 
-  try {
-    const res = await fetch("http://localhost:4000/api/v1/subscribe", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, source: "handbook" }), // 👈 add source to track
-    });
+    try {
+      const { data, error } = await supabase
+        .from("handbook")
+        .insert([{ name, email }]);
 
-    const data = await res.json();
-
-    if (data.success) {
-      setSubmitted(true);
-
-      // Auto-close after 2s
-      setTimeout(() => {
-        setIsOpen(false);
-        setSubmitted(false);
-      }, 2000);
-    } else {
-      alert("Something went wrong: " + data.error);
+      if (error) {
+        console.error("Supabase insert error:", error);
+        setMessage("Something went wrong. Please try again.");
+      } else {
+        setSubmitted(true);
+        setMessage("Success!");
+        setTimeout(() => {
+          setIsOpen(false);
+          setSubmitted(false);
+          setMessage("");
+        }, 2000);
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage("Error submitting form.");
     }
-  } catch (err) {
-    console.error(err);
-    alert("Error submitting form");
-  }
-};
-
+  };
 
   if (!isClient) return null;
 
@@ -68,10 +69,9 @@ const HandbookReminder = () => {
     <>
       {showIcon && (
         <>
-          {/* Floating Button */}
           {!isOpen && (
             <motion.div
-              className="fixed bottom-5 md:bottom-20 right-5 z-50"
+              className="fixed bottom-5 md:bottom-5 right-5 z-50"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
             >
@@ -86,7 +86,6 @@ const HandbookReminder = () => {
             </motion.div>
           )}
 
-          {/* Handbook Popup */}
           <AnimatePresence>
             {isOpen && (
               <motion.div
@@ -102,7 +101,6 @@ const HandbookReminder = () => {
                   transition={{ duration: 0.25 }}
                   className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white w-full max-w-sm rounded-2xl shadow-2xl p-5 border border-gray-700"
                 >
-                  {/* Header */}
                   <div className="flex justify-between items-center mb-3">
                     <h3 className="text-xl font-bold flex items-center gap-2">
                       🎁 Free Handbook
@@ -112,16 +110,16 @@ const HandbookReminder = () => {
                     </button>
                   </div>
 
-                  {/* Content */}
                   {!submitted ? (
                     <>
                       <p className="text-sm text-gray-300 mb-4">
                         Unlock our premium posture guide worth{" "}
-                        <span className="text-teal-400 font-semibold">₹500</span> -
-                        free for you!
+                        <span className="text-teal-400 font-semibold">
+                          ₹500
+                        </span>{" "}
+                        - free for you!
                       </p>
 
-                      {/* Form */}
                       <form className="space-y-3" onSubmit={handleSubmit}>
                         <input
                           type="text"
@@ -145,9 +143,13 @@ const HandbookReminder = () => {
                           Claim Now
                         </motion.button>
                       </form>
+                      {message && (
+                        <div className="mt-3 text-center text-red-400">
+                          {message}
+                        </div>
+                      )}
                     </>
                   ) : (
-                    // Confirmation Message
                     <motion.div
                       className="flex flex-col items-center justify-center h-48 text-center"
                       initial={{ opacity: 0, scale: 0.8 }}
@@ -156,7 +158,7 @@ const HandbookReminder = () => {
                       <CheckCircle2 className="w-12 h-12 text-teal-400 mb-3" />
                       <h4 className="text-lg font-semibold">Success!</h4>
                       <p className="text-sm text-gray-300">
-                        Your handbook is on its way 🎉
+                        Your handbook is on its way!
                       </p>
                     </motion.div>
                   )}

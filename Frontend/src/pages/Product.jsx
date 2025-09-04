@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { Link } from "react-router-dom";
 import {
   ShoppingCart,
   ChevronDown,
@@ -17,17 +18,7 @@ import "swiper/css";
 import "swiper/css/navigation";
 
 import { useCart } from "../context/CartContext";
-import atWork from "../assets/atWork.webp";
-import move from "../assets/move.webp";
-import home from "../assets/home.webp";
-import user1 from "../assets/user1.webp";
-import user2 from "../assets/user2.webp";
-import user3 from "../assets/user3.webp";
-import user4 from "../assets/user4.webp";
-import user5 from "../assets/user5.webp";
-import productImg1 from "../assets/img1.png";
-import productImg2 from "../assets/img2.png";
-import productImg3 from "../assets/img3.png";
+import { supabase } from "../supabaseClient";
 
 const ProductPage = () => {
   const { addItem } = useCart();
@@ -35,30 +26,59 @@ const ProductPage = () => {
   const [openFaq, setOpenFaq] = useState(null);
   const [showStickyBar, setShowStickyBar] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [priceData, setPriceData] = useState(null);
   const sectionRef = useRef(null);
 
   const product = {
     name: "Posture Corrector Neckband",
-    price: 2999,
-    originalPrice: 6999,
-    discountPercent: 60,
     description:
       "A smart neckband that gently corrects your posture - so you don't have to think about it. Experience discreet, consistent support that adapts to your daily movements, guiding you towards better spinal alignment effortlessly.",
     images: [
-      { url: productImg1, alt: "top view" },
-      { url: productImg2, alt: "front view" },
-      { url: productImg3, alt: "angle view" },
+      {
+        url: "https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/img1.png",
+        alt: "top view",
+      },
+      {
+        url: "https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/img2.png",
+        alt: "front view",
+      },
+      {
+        url: "https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/img3.png",
+        alt: "angle view",
+      },
     ],
     reviews: { avg: 4.7, count: 842 },
   };
 
-  const totalPrice = product.price * qty;
+  const [mainImage, setMainImage] = useState(product.images[0]);
+
+  // Fetch price from Supabase
+  useEffect(() => {
+    const fetchPrice = async () => {
+      const { data, error } = await supabase
+        .from("Prices")
+        .select("MRP, DiscountPercentage")
+        .order("id", { ascending: true })
+        .limit(1);
+
+      if (error) {
+        console.error("Error fetching price:", error);
+      } else if (data && data.length > 0) {
+        const mrp = data[0].MRP;
+        const discount = data[0].DiscountPercentage;
+        const sellingPrice = Math.round(mrp - mrp * (discount / 100));
+        setPriceData({ mrp, discount, sellingPrice });
+      }
+    };
+    fetchPrice();
+  }, []);
 
   const handleAddToCart = () => {
+    if (!priceData) return; // prevent adding if price not loaded
     addItem({
       id: 1,
       name: product.name,
-      price: product.price,
+      price: priceData.sellingPrice,
       quantity: qty,
       image: product.images[0],
     });
@@ -66,18 +86,21 @@ const ProductPage = () => {
     setTimeout(() => setShowConfirmation(false), 1500);
   };
 
+  const totalPrice = priceData ? priceData.sellingPrice * qty : 0;
+
+  // Sticky bar scroll handler
   useEffect(() => {
     const handleScroll = () => {
       if (sectionRef.current) {
         const { top } = sectionRef.current.getBoundingClientRect();
-        // Show sticky bar when the product info section is scrolled past
-        setShowStickyBar(top < -50); // A small offset for better feel
+        setShowStickyBar(top < -50);
       }
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Carousel, reviews, and FAQ data remain unchanged...
   const carouselItems = [
     {
       title: "Real-Time Posture Feedback",
@@ -104,17 +127,14 @@ const ProductPage = () => {
       mobileMockupSrc: "/assets/carousel-3.png",
     },
   ];
-
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const goNext = () => {
     setCurrentIndex((prev) => (prev < carouselItems.length ? prev + 1 : prev));
   };
-
   const goPrev = () => {
     setCurrentIndex((prev) => (prev > 0 ? prev - 1 : prev));
   };
-  const [mainImage, setMainImage] = useState(product.images[0]);
 
   return (
     <div className="bg-neutral-950 text-white pt-16 font-sans">
@@ -125,7 +145,7 @@ const ProductPage = () => {
       >
         {/* Product Images */}
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 w-full font-sans text-neutral-200">
-          {/* Vertical Thumbnails (desktop only) */}
+          {/* Vertical Thumbnails */}
           <div className="hidden lg:flex flex-col gap-3 w-auto">
             {product.images.map((image, idx) => (
               <div
@@ -179,12 +199,11 @@ const ProductPage = () => {
 
         {/* Product Info */}
         <div className="space-y-6">
-          {/* name */}
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white leading-tight">
             {product.name}
           </h1>
 
-          {/* reviews */}
+          {/* Reviews */}
           <div className="flex items-center gap-2 text-yellow-500">
             {[...Array(5)].map((_, i) => (
               <Star
@@ -203,33 +222,36 @@ const ProductPage = () => {
             </span>
           </div>
 
-          {/* pricing */}
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-              <p className="text-2xl sm:text-3xl font-bold text-teal-400">
-                ₹{product.price.toLocaleString()}
+          {/* Pricing */}
+          {priceData ? (
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+                <p className="text-2xl sm:text-3xl font-bold text-teal-400">
+                  ₹{priceData.sellingPrice.toLocaleString()}
+                </p>
+                <p className="line-through text-gray-500 text-base sm:text-lg">
+                  ₹{priceData.mrp.toLocaleString()}
+                </p>
+                <span className="text-xs sm:text-sm bg-red-500 text-white font-semibold px-3 py-1 rounded-full border border-red-700 animate-bounce relative">
+                  {priceData.discount}% OFF
+                  <div className="absolute -top-1 -right-0.5 w-2 h-2 bg-red-500 rounded-full animate-ping" />
+                </span>
+              </div>
+              <p className="text-sm text-green-500 font-medium">
+                Limited Time Offer – Ends Soon!
               </p>
-              <p className="line-through text-gray-500 text-base sm:text-lg">
-                ₹{product.originalPrice.toLocaleString()}
-              </p>
-              <span className="text-xs sm:text-sm bg-red-500 text-white font-semibold px-3 py-1 rounded-full border border-red-700 animate-bounce relative">
-                {product.discountPercent}% OFF
-                <div className="absolute -top-1 -right-0.5 w-2 h-2 bg-red-500 rounded-full animate-ping" />
-              </span>
             </div>
+          ) : (
+            <p>Loading price...</p>
+          )}
 
-            <p className="text-sm text-green-500 font-medium">
-              Limited Time Offer – Ends Soon!
-            </p>
-          </div>
-
-          {/* description */}
+          {/* Description */}
           <p className="text-sm sm:text-base text-gray-300 leading-relaxed">
             {product.description}
           </p>
 
           {/* CTA */}
-          <div className="flex flex-col sm:flex-row items-center gap-4 pt-4">
+          <div className="relative flex flex-col sm:flex-row items-center gap-4 pt-4">
             <div className="flex items-center justify-center border border-neutral-700 rounded-lg overflow-hidden shadow-sm w-full sm:w-auto">
               <button
                 onClick={() => qty > 1 && setQty(qty - 1)}
@@ -249,18 +271,43 @@ const ProductPage = () => {
               </button>
             </div>
 
-            <button
-              onClick={handleAddToCart}
-              className="flex items-center justify-center gap-2 bg-teal-600 hover:cursor-pointer text-white px-6 sm:px-8 py-3 rounded-full text-base sm:text-lg font-semibold shadow-lg hover:bg-teal-700 transition-all duration-300 transform hover:scale-105 w-full sm:w-auto"
-            >
-              <ShoppingCart size={20} />
-              Add to Cart
-            </button>
+            <div className="relative w-full sm:w-auto">
+              <button
+                onClick={handleAddToCart}
+                className="flex items-center justify-center gap-2 bg-teal-600 hover:cursor-pointer text-white px-6 sm:px-8 py-3 rounded-full text-base sm:text-lg font-semibold shadow-lg hover:bg-teal-700 transition-all duration-300 transform hover:scale-105 w-full sm:w-auto"
+              >
+                <ShoppingCart size={20} />
+                Add to Cart
+              </button>
+
+              {/* Confirmation Toast */}
+              {/* Confirmation Toast */}
+              <AnimatePresence>
+                {showConfirmation && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 50 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 50 }}
+                    transition={{ duration: 0.3 }}
+                    className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-green-600 text-white text-sm px-4 py-2 rounded-lg shadow-xl flex items-center gap-2 z-50"
+                  >
+                    <CheckCircle size={18} />
+                    <span>Item Added!</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
 
+          {/* Total */}
           <p className="text-base sm:text-lg text-gray-200 font-bold pt-2">
             Total: ₹{totalPrice.toLocaleString()}
           </p>
+          <div className="text-sm text-gray-400 hover:cursor-pointer hover:text-gray-300">
+            <Link to="/t&c" className="hover:text-white transition">
+              T&C Applied.
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -357,7 +404,8 @@ const ProductPage = () => {
           {[
             {
               title: "At Work",
-              image: atWork,
+              image:
+                "https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/atWork.webp",
               details: [
                 "Perfect for long desk sessions",
                 "Provides subtle reminders",
@@ -366,7 +414,8 @@ const ProductPage = () => {
             },
             {
               title: "On the Move",
-              image: move,
+              image:
+                "https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/move.webp",
               details: [
                 "Tracks posture while walking or commuting",
                 "Real-time feedback via AlignApp",
@@ -375,15 +424,14 @@ const ProductPage = () => {
             },
             {
               title: "At Home",
-              image: home,
+              image:
+                "https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/home.webp",
               details: [
                 "Encourages healthy posture during daily activities",
                 "Provides gentle reminders while working or studying",
                 "Supports comfort and focus in your home environment",
               ],
             },
-
-            // Removed the 4th "While Creating" item
           ].map((item, i) => (
             <div
               key={i}
@@ -429,9 +477,9 @@ const ProductPage = () => {
               <span className="text-teal-600">Everyday Comfort</span>
             </h2>
             <p className="text-gray-600 text-base sm:text-lg leading-relaxed">
-              Every detail of the posture corrector neckband is built with your comfort
-              and alignment in mind, from feather-light materials to smart
-              motion sensors. Here's a look under the hood.
+              Every detail of the posture corrector neckband is built with your
+              comfort and alignment in mind, from feather-light materials to
+              smart motion sensors. Here's a look under the hood.
             </p>
           </div>
 
@@ -513,31 +561,36 @@ const ProductPage = () => {
             >
               {[
                 {
-                  avatar: user1,
+                  avatar:
+                    "https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/user1.webp",
                   quote:
                     "Working from home, my posture suffered from long hours at the laptop. Aligneye's gentle nudges were a lifesaver. My chronic back pain has reduced, and I feel so much more productive now. It's a fantastic solution.",
                   name: "Vikram Reddy",
                 },
                 {
-                  avatar: user2,
+                  avatar:
+                    "https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/user2.webp",
                   quote:
                     "As a teacher, I'm on my feet all day. Aligneye helped me stop slouching and significantly improved my alignment. I now have far less fatigue at the end of the day. Highly recommend to fellow educators!",
                   name: "Sandeep Kumar",
                 },
                 {
-                  avatar: user3,
+                  avatar:
+                    "https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/user3.webp",
                   quote:
                     "I was skeptical, but the results speak for themselves. After using the neckband, I've noticed a significant and lasting improvement in my posture. I'm now holding myself up straighter without even thinking about it. A fantastic device!",
                   name: "Ananya Sharma",
                 },
                 {
-                  avatar: user4,
+                  avatar:
+                    "https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/user4.webp",
                   quote:
                     "I used to suffer from constant neck and shoulder pain from my desk job. Neckband's gentle reminders were a game-changer. My pain is almost gone, and I feel so much better after just a few weeks of use.",
                   name: "Rohan Patel",
                 },
                 {
-                  avatar: user5,
+                  avatar:
+                    "https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/user5.webp",
                   quote:
                     "My posture was a mess from years of desk work. Aligneye's gentle reminders and targeted exercises have made a huge difference. I feel taller and more aligned, and my confidence has improved as a result.",
                   name: "Priya Das",
@@ -588,16 +641,56 @@ const ProductPage = () => {
         <div className="max-w-3xl mx-auto space-y-4 sm:space-y-5">
           {[
             {
-              q: "How do they help with posture?",
-              a: "They detect slouching and give you gentle haptic reminders to correct your posture-subtle yet effective. This active feedback helps build muscle memory over time.",
+              q: "What is Aligneye Posture Corrector Neckband?",
+              a: "It is a smart wearable neckband that helps you improve posture by tracking your neck and back position and giving gentle reminders when you slouch.",
             },
             {
-              q: "Is there an app?",
-              a: "Yes, the Aligneye app connects via Bluetooth to display posture data and allows customization of feedback intensity and alert frequency. Available for iOS and Android.",
+              q: "Is Posture Corrector Neckband a medical device?",
+              a: "No. It is a wellness and lifestyle product, not a medical device. It is designed to support posture awareness but should not replace medical advice or physiotherapy.",
             },
             {
-              q: "Battery life?",
-              a: "Up to 10 hours of active use on a single charge, with quick-charging capabilities for on-the-go convenience.",
+              q: "How does it work?",
+              a: "It uses motion sensors to track your posture. When it detects slouching beyond a set angle, it provides a gentle vibration alert to remind you to sit or stand straight.",
+            },
+            {
+              q: "Who can use Posture Corrector Neckband?",
+              a: "Office workers, students, or anyone who spends long hours sitting. People experiencing minor posture issues. ⚠️ Not recommended for children under 13 without supervision.",
+            },
+            {
+              q: "Is it safe to wear all day?",
+              a: "Yes, Posture Corrector Neckband is lightweight and safe for daily use. However, we recommend using it for 2-4 hours per day to build posture awareness gradually.",
+            },
+            {
+              q: "Does Posture Corrector Neckband cause pain or discomfort?",
+              a: "No. The device is non-invasive and only provides a gentle vibration. If you feel pain or discomfort, stop using it and consult a doctor.",
+            },
+            {
+              q: "How do I charge the device?",
+              a: "Posture Corrector Neckband comes with a USB Type-C / Micro-USB charging port (depending on model). A full charge takes around 1.5-2 hours and provides up to 24 hours of usage.",
+            },
+            {
+              q: "Is my data safe?",
+              a: "Yes. If you use the Aligneye app, your data is encrypted and processed as per our Privacy Policy. We do not sell your personal information.",
+            },
+            {
+              q: "Can Posture Corrector Neckband fix my posture permanently?",
+              a: "It helps train your body to develop posture awareness. Long-term improvement depends on consistent use, exercise, and lifestyle habits.",
+            },
+            {
+              q: "What is the warranty?",
+              a: "It comes with a 12-month limited warranty covering manufacturing defects. Warranty does not cover accidental damage or misuse.",
+            },
+            {
+              q: "What is the return policy?",
+              a: "We offer a 7-day return policy (based on your business decision). The product must be in original condition with all packaging.",
+            },
+            {
+              q: "Can I use Posture Corrector Neckband while exercising or running?",
+              a: "No. It is designed for sitting or standing posture correction, not for sports or heavy physical activity.",
+            },
+            {
+              q: "Is Posture Corrector Neckband waterproof?",
+              a: "No. It is splash-resistant only. Avoid using it in rain or while sweating heavily.",
             },
           ].map((faq, index) => (
             <div
@@ -664,7 +757,7 @@ const ProductPage = () => {
               {/* Add to Cart Button */}
               <button
                 onClick={handleAddToCart}
-                className="bg-teal-600 text-white px-5 py-2.5 rounded-full text-sm sm:text-base font-semibold shadow-lg hover:bg-teal-700 transition-all duration-300 flex items-center gap-2 w-full sm:w-auto justify-center hover:scale-105"
+                className="bg-teal-600 text-white px-5 py-2.5 hover:cursor-pointer rounded-full text-sm sm:text-base font-semibold shadow-lg hover:bg-teal-700 transition-all duration-300 flex items-center gap-2 w-full sm:w-auto justify-center hover:scale-105"
               >
                 <ShoppingCart size={18} />
                 <span>Add to Cart</span>

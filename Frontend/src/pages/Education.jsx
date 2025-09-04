@@ -10,7 +10,7 @@ const Education = () => {
           Education Page Coming Soon
         </h1>
         <p className="text-gray-400 max-w-md mx-auto">
-          We’re working hard to bring you valuable educational content about
+          We're working hard to bring you valuable educational content about
           posture, vision health, and smart wearables. Stay tuned!
         </p>
       </div>

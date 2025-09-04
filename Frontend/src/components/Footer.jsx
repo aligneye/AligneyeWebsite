@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import logo from "../assets/aligneyeFinalLogo.webp";
 import {
   Instagram,
   Youtube,
@@ -10,43 +9,19 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
+import { Link } from "react-router-dom";
+
+const supportedBy = [
+  "https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/PU.png",
+  "https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/startupBihar.png",
+  "https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/PUIC.png",
+];
 
 const Footer = () => {
   const [openSection, setOpenSection] = useState(null);
-  const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
 
   const toggleSection = (section) => {
     setOpenSection(openSection === section ? null : section);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setMessage("");
-
-    try {
-      const res = await fetch("http://localhost:4000/api/v1/subscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, source: "footer" }),
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        setMessage("🎉 Thank you for subscribing!");
-        setEmail("");
-      } else {
-        setMessage(data.error || " Error in submitting the form.");
-      }
-    } catch (err) {
-      console.error(err);
-      setMessage(" Server error. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
   };
 
   return (
@@ -55,12 +30,11 @@ const Footer = () => {
       <div className="hidden lg:block absolute inset-0 opacity-5 bg-gradient-to-br from-teal-500 via-transparent to-purple-600 pointer-events-none"></div>
 
       <div className="container mx-auto px-4 sm:px-6 md:px-8 relative z-10">
-        {/* Top: Logo + Intro + CTA */}
+        {/* Top: Logo + Socials */}
         <div className="lg:flex lg:justify-between lg:items-start mb-12 gap-8 sm:gap-12">
-          {/* Left: Logo + Intro + Socials */}
           <div className="text-center lg:text-left lg:w-full lg:max-w-md">
             <img
-              src={logo}
+              src="https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/aligneyeFinalLogo.webp"
               alt="Aligneye Logo"
               className="w-32 sm:w-36 mx-auto lg:mx-0 mb-4"
             />
@@ -69,7 +43,6 @@ const Footer = () => {
               living.
             </p>
 
-            {/* Socials */}
             <div className="flex justify-center lg:justify-start mt-6 space-x-3 sm:space-x-4">
               <a
                 href="https://www.instagram.com/aligneye/"
@@ -94,45 +67,10 @@ const Footer = () => {
               </a>
             </div>
           </div>
-
-          {/* Right: Community CTA */}
-          <div className="mt-10 lg:mt-0 lg:w-full lg:max-w-md">
-            <h3 className="text-lg font-semibold text-white mb-3 text-center lg:text-left">
-              Join the Aligneye Community
-            </h3>
-            <p className="text-gray-400 mb-4 text-sm text-center lg:text-left">
-              Be part of a growing movement. Get early access, tips, and
-              community-only perks.
-            </p>
-            <form
-              onSubmit={handleSubmit}
-              className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4"
-            >
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Your email address"
-                required
-                className="w-full sm:flex-grow px-4 py-2 rounded-full bg-neutral-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm sm:text-base"
-              />
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-6 py-2 rounded-full bg-teal-600 hover:bg-teal-500 hover:cursor-pointer hover:scale-105 text-white font-medium transition text-sm sm:text-base whitespace-nowrap disabled:opacity-50"
-              >
-                {loading ? "Submitting..." : "Join Now"}
-              </button>
-            </form>
-            {message && (
-              <p className="text-center text-sm mt-3 text-gray-300">{message}</p>
-            )}
-          </div>
         </div>
 
-        {/* Main Links Section -mobile version */}
-         <div className="lg:hidden">
-           {/* Mobile Collapsible Sections */}
+        {/* Main Links Section - mobile */}
+        <div className="lg:hidden">
           {["products", "company", "contact"].map((section) => (
             <div key={section} className="mb-6">
               <button
@@ -154,7 +92,10 @@ const Footer = () => {
                 <ul className="text-gray-400 space-y-2 mt-2 text-sm">
                   {section === "products" && (
                     <li>
-                      <a href="#" className="hover:text-white transition">
+                      <a
+                        href="/product"
+                        className="hover:text-white transition"
+                      >
                         Posture Corrector Neckband
                       </a>
                     </li>
@@ -162,17 +103,26 @@ const Footer = () => {
                   {section === "company" && (
                     <>
                       <li>
-                        <a href="#" className="hover:text-white transition">
+                        <Link
+                          to="/aboutUs"
+                          className="hover:text-white transition"
+                        >
                           About Us
-                        </a>
+                        </Link>
                       </li>
                       <li>
-                        <a href="#" className="hover:text-white transition">
+                        <Link
+                          to="/ourStory"
+                          className="hover:text-white transition"
+                        >
                           Our Story
-                        </a>
+                        </Link>
                       </li>
                       <li>
-                        <a href="/blogs" className="hover:text-white transition">
+                        <a
+                          href="/blogs"
+                          className="hover:text-white transition"
+                        >
                           Blog
                         </a>
                       </li>
@@ -182,19 +132,26 @@ const Footer = () => {
                     <>
                       <li className="flex items-center">
                         <Mail className="mr-2 text-teal-400" size={16} />
-                        <a href="mailto:aligneye@gmail.com" className="text-sm">
-                          aligneye@gmail.com
+                        <a
+                          href="mailto:help.aligneye@gmail.com"
+                          className="text-sm"
+                        >
+                          help.aligneye@gmail.com
                         </a>
                       </li>
                       <li className="flex items-center">
                         <Phone className="mr-2 text-teal-400" size={16} />
-                        <a href="tel:+916207730209" className="text-sm">
-                          +91 62077 30209
+                        <a href="tel:+917717465091" className="text-sm">
+                          +91 7717465091
                         </a>
                       </li>
                       <li className="flex items-start">
-                        <MapPin className="mr-2 mt-1 text-teal-400" size={16} />
-                        <span className="text-sm">Delhi NCR, India</span>
+                        <MapPin className="mr-2 mt-1 text-teal-400" size={45} />
+                        <span className="text-sm">
+                          Technology Business Incubator, Mechanical Workshop,
+                          UIET, Panjab University, Chandigarh, India, Pin Code:
+                          160014
+                        </span>
                       </li>
                     </>
                   )}
@@ -204,9 +161,8 @@ const Footer = () => {
           ))}
         </div>
 
-        {/* Desktop Grid (hidden on mobile) */}
+        {/* Desktop Grid */}
         <div className="hidden lg:grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6">
-          {/* Products */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-white">Products</h3>
             <ul className="space-y-2 text-gray-400 text-sm">
@@ -218,19 +174,18 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Company */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-white">Company</h3>
             <ul className="space-y-2 text-gray-400 text-sm">
               <li>
-                <a href="#" className="hover:text-teal-400 transition">
+                <Link to="/aboutUs" className="hover:text-white transition">
                   About Us
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-teal-400 transition">
+                <Link to="/ourStory" className="hover:text-white transition">
                   Our Story
-                </a>
+                </Link>
               </li>
               <li>
                 <a href="/blogs" className="hover:text-teal-400 transition">
@@ -240,38 +195,60 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Contact */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-white">Contact Us</h3>
             <ul className="space-y-2 text-gray-400 text-sm">
               <li className="flex items-center">
                 <Mail className="mr-2 text-teal-400" size={16} />
-                <a href="mailto:aligneye@gmail.com" className="hover:text-gray-300">aligneye@gmail.com</a>
+                <a
+                  href="mailto:help.aligneye@gmail.com"
+                  className="hover:text-gray-300"
+                >
+                  help.aligneye@gmail.com
+                </a>
               </li>
               <li className="flex items-center">
                 <Phone className="mr-2 text-teal-400" size={16} />
-                <a href="tel:+916207730209" className="hover:text-gray-300">+91 9955165091</a>
+                <a href="tel:+917717465091" className="hover:text-gray-300">
+                  +91 7717465091
+                </a>
               </li>
               <li className="flex items-start hover:cursor-pointer">
-                <MapPin className="mr-2 mt-1 text-teal-400" size={16} />
-                <span className="hover:text-gray-300">Technology Business Incubator, Block 3, UIET, Panjab University, Chandigarh</span>
+                <MapPin className="mr-2 mt-1 text-teal-400" size={40} />
+                <span className="hover:text-gray-300">
+                  Technology Business Incubator, Mechanical Workshop, UIET,
+                  Panjab University, Chandigarh, India, Pin Code: 160014
+                </span>
               </li>
             </ul>
+          </div>
+        </div>
+
+        {/* App Supported By Section */}
+        <div className="mt-10 flex flex-col items-center justify-center space-y-4">
+          <h4 className="text-white font-semibold text-lg">Supported By</h4>
+          <div className="flex flex-wrap justify-center gap-6 mt-2">
+            {supportedBy.map((logo, index) => (
+              <img
+                key={index}
+                src={logo}
+                alt={`Supported By ${index + 1}`}
+                className="h-18 object-contain"
+              />
+            ))}
           </div>
         </div>
 
         {/* Bottom Links & Copyright */}
         <div className="border-t border-neutral-800 mt-10 pt-6 flex flex-col md:flex-row justify-between items-center text-xs sm:text-sm text-gray-500">
           <p className="mb-3 md:mb-0">
-            &copy; {new Date().getFullYear()} Aligneye Vision Private Limited. All rights reserved.
+            &copy; {new Date().getFullYear()} Aligneye Vision Private Limited.
+            All rights reserved.
           </p>
           <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs sm:text-sm">
-            <a href="#" className="hover:text-white transition">
+            <Link to="/privacyPolicy" className="hover:text-white transition">
               Privacy Policy
-            </a>
-            <a href="#" className="hover:text-white transition">
-              Terms
-            </a>
+            </Link>
           </div>
         </div>
       </div>

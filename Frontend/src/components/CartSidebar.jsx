@@ -1,62 +1,30 @@
 import React from "react";
 import { X } from "lucide-react";
 import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 const CartSidebar = ({ isOpen, onClose }) => {
+  const { user } = useAuth();
   const { items, removeItem, updateQuantity, totalPrice } = useCart();
+  const isCartEmpty = items.length === 0;
   const navigate = useNavigate();
 
-  const handleCheckout = async () => {
-    if (items.length === 0) return;
+  const handleCheckout = () => {
+    const cartData = {
+      items,
+      totalPrice,
+    };
 
-    try {
-      // Create order on backend
-      const res = await fetch("http://localhost:4000/api/v1/payment/order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: totalPrice }), // backend multiplies to paise
-      });
-
-      const data = await res.json();
-      const order = data.data;
-
-      if (!order?.id) {
-        alert("Failed to create Razorpay order");
-        return;
-      }
-
-      // Razorpay options
-      const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-        amount: order.amount,
-        currency: order.currency,
-        name: "Aligneye",
-        description: "Order Payment",
-        order_id: order.id,
-        handler: function (response) {
-          navigate("/success", {
-            state: {
-              paymentId: response.razorpay_payment_id,
-              orderId: response.razorpay_order_id,
-              signature: response.razorpay_signature,
-            },
-          });
-        },
-        prefill: {
-          name: "Customer Name",
-          email: "customer@example.com",
-          contact: "9876543210",
-        },
-        theme: {
-          color: "#0f766e", 
-        },
-      };
-
-      const rzp = new window.Razorpay(options);
-      rzp.open();
-    } catch (err) {
-      console.error("Payment error:", err);
+    if (!user) {
+      // Save cart data and return path in sessionStorage
+      sessionStorage.setItem("returnTo", "/checkoutForm");
+      sessionStorage.setItem("cartData", JSON.stringify(cartData));
+      navigate("/auth");
+    } else {
+      // Pass cart data directly via state
+      navigate("/checkoutForm", { state: cartData });
+      onClose();
     }
   };
 
@@ -110,14 +78,12 @@ const CartSidebar = ({ isOpen, onClose }) => {
                   <p className="text-xs sm:text-sm text-gray-500 mt-1">
                     ₹{item.price.toLocaleString()}
                   </p>
-                  {/* Quantity Controls */}
                   <div className="flex items-center mt-2">
                     <button
                       onClick={() =>
                         updateQuantity(item.id, Math.max(1, item.quantity - 1))
                       }
                       className="px-2 py-1 text-gray-600 hover:bg-gray-200 rounded"
-                      aria-label="Decrease quantity"
                     >
                       -
                     </button>
@@ -127,18 +93,15 @@ const CartSidebar = ({ isOpen, onClose }) => {
                     <button
                       onClick={() => updateQuantity(item.id, item.quantity + 1)}
                       className="px-2 py-1 text-gray-600 hover:bg-gray-200 rounded"
-                      aria-label="Increase quantity"
                     >
                       +
                     </button>
                   </div>
                 </div>
 
-                {/* Remove Button */}
                 <button
                   onClick={() => removeItem(item.id)}
                   className="text-red-500 hover:text-red-700 self-start sm:self-center"
-                  title="Remove item"
                 >
                   <X className="w-5 h-5 hover:cursor-pointer" />
                 </button>
@@ -155,20 +118,23 @@ const CartSidebar = ({ isOpen, onClose }) => {
               ₹{totalPrice.toLocaleString()}
             </span>
           </div>
+
+          {/* Checkout Button */}
           <button
             onClick={handleCheckout}
-            disabled={items.length === 0}
-            className={`w-full py-2.5 px-4 rounded-lg font-medium transition hover:cursor-pointer ${
-              items.length === 0
-                ? "bg-gray-300 cursor-not-allowed text-gray-500"
-                : "bg-teal-600 hover:bg-teal-700 text-white"
+            disabled={isCartEmpty}
+            className={`w-full py-2 rounded-lg text-sm sm:text-base font-medium transition hover:cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+              isCartEmpty
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-teal-600 text-white hover:bg-teal-700 focus:ring-teal-500"
             }`}
           >
-            Checkout
+            {isCartEmpty ? "No Items to Checkout" : "Proceed to Checkout"}
           </button>
+
           <button
             onClick={onClose}
-            className="w-full text-center text-sm text-gray-600 underline hover:cursor-pointer hover:text-gray-800"
+            className="w-full text-center text-sm text-gray-600 underline hover:text-gray-800 hover:cursor-pointer"
           >
             Continue Shopping
           </button>

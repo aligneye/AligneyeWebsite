@@ -1,12 +1,5 @@
 @import "tailwindcss";
 
-/* body{
-  background-image: url(./assets/background.png);
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: center;
-} */
-
 html, body {
   height: 100%;
   background-color: black;

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 // libraries
 import { Link } from "react-router-dom";
@@ -24,58 +24,65 @@ import {
   ShoppingBag,
 } from "lucide-react";
 
-// assets
-import product from "../assets/product_image.webp";
-import aligneyeProductImage from "../assets/product_.webp";
-import bgImage from "../assets/background.webp";
-import feature1 from "../assets/SmartCoach.webp";
-import feature2 from "../assets/SmartWalk.webp";
-import feature3 from "../assets/SmartMeditation.webp";
-import appFeature1 from "../assets/1000Exercises.webp";
-import appFeature2 from "../assets/20SportsMode.webp";
-import appFeature3 from "../assets/PersonalisedProgressTracking.webp";
-import appFeature4 from "../assets/Community&Badges.webp";
-import imgStep1 from "../assets/step1.webp";
-import imgStep2 from "../assets/step2.webp";
-import doctorImg from "../assets/doctor.webp";
-import user1 from "../assets/user1.webp";
-import user2 from "../assets/user2.webp";
-import user3 from "../assets/user3.webp";
-import user4 from "../assets/user4.webp";
-import user5 from "../assets/user5.webp";
-
 // components
-import ChatBot from "../components/ChatBot";
 import HandbookReminder from "../components/HandbookReminder";
 
-// cart feature
+// misc
 import { useCart } from "../context/CartContext";
-
+import { supabase } from "../supabaseClient";
 
 const Home = () => {
   const item = {
     id: 1,
     name: "Posture Corrector Neckband",
-    price: 2999,
     quantity: 1,
-    image: aligneyeProductImage,
+    image:
+      "https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/product_.webp",
   };
+  const [priceData, setPriceData] = useState(null);
+  useEffect(() => {
+    const fetchPrice = async () => {
+      const { data, error } = await supabase
+        .from("Prices")
+        .select("MRP, DiscountPercentage")
+        .order("id", { ascending: true })
+        .limit(1);
+
+      if (error) {
+        console.error("Error fetching price:", error);
+      } else if (data && data.length > 0) {
+        const mrp = data[0].MRP;
+        const discount = data[0].DiscountPercentage;
+        const sellingPrice = Math.round(mrp - mrp * (discount / 100));
+        setPriceData({ mrp, discount, sellingPrice });
+      }
+    };
+    fetchPrice();
+  }, []);
 
   const { addItem } = useCart();
   const handleAddToCart = () => {
-    addItem(item);
+    if (!priceData) return;
+    addItem({
+      id: 1,
+      name: item.name,
+      price: priceData.sellingPrice,
+      quantity: 1,
+    });
+    setShowConfirmation(true);
+    setTimeout(() => setShowConfirmation(false), 1500);
   };
 
   return (
     <div>
-      <ChatBot />
-
       <HandbookReminder />
 
       {/* section1: hero section */}
       <section
         className="relative z-10 px-6 pt-30 text-white bg-cover bg-center"
-        style={{ backgroundImage: `url(${bgImage})` }}
+        style={{
+          backgroundImage: `url(https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/background.webp)`,
+        }}
       >
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-2 items-center">
@@ -119,7 +126,7 @@ const Home = () => {
             {/* Right - Product */}
             <div className="flex justify-center lg:justify-end">
               <img
-                src={product}
+                src="https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/product_image.webp"
                 alt="Posture Corrector Neckband"
                 className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl object-contain"
                 draggable="false"
@@ -148,26 +155,34 @@ const Home = () => {
             id="how-it-works-video"
             className="relative bg-black rounded-xl sm:rounded-2xl overflow-hidden aspect-[21/9] mb-10 md:mb-16"
           >
-            <iframe className="absolute inset-0 w-full h-full" src="https://www.youtube.com/embed/ZVy5krlFEqk?si=Cn6qvDeLtEw8X0JQ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+            <iframe
+              className="absolute inset-0 w-full h-full"
+              src="https://www.youtube.com/embed/ZVy5krlFEqk?si=Cn6qvDeLtEw8X0JQ"
+              title="YouTube video player"
+              frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerpolicy="strict-origin-when-cross-origin"
+              allowfullscreen
+            ></iframe>
           </div>
 
           {/* 3 Main Features */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8 mb-10 md:mb-16">
             {[
               {
-                img: feature1,
+                img: "https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/SmartCoach.webp",
                 tag: "Personalized Posture Guidance",
                 title: "SMART COACH",
                 desc: "An AI-powered coach that adapts to your behavior and gently trains you to improve over time.",
               },
               {
-                img: feature2,
+                img: "https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/SmartWalk.webp",
                 tag: "Posture Tracking On the Go",
                 title: "SMART WALK",
                 desc: "Monitors your walking posture and provides instant haptic feedback to keep you aligned throughout the day.",
               },
               {
-                img: feature3,
+                img: "https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/SmartMeditation.webp",
                 tag: "Mind-Body Posture Sync",
                 title: "SMART MEDITATION",
                 desc: "Enhance your meditation with posture-aware breathing sessions and gentle alignment reminders.",
@@ -233,7 +248,7 @@ const Home = () => {
         {/* Desktop: Feature around product image */}
         <div className="hidden lg:flex relative w-full max-w-7xl aspect-[16/9] mx-auto items-center justify-center">
           <img
-            src={aligneyeProductImage}
+            src="https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/product_.webp"
             alt="Posture Corrector Neckband"
             className="relative z-10 w-full max-h-[400px] object-contain pt-5 mb-20"
             draggable="false"
@@ -253,7 +268,7 @@ const Home = () => {
               icon: Bluetooth,
               title: "Powered by Bluetooth 5.2",
               description:
-                "Enhanced range, stability, and energy efficiency with advanced Bluetooth 5.2 — for seamless posture feedback across devices.",
+                "Enhanced range, stability, and energy efficiency with advanced Bluetooth 5.2 - for seamless posture feedback across devices.",
               position:
                 "right-10 top-1/4 -translate-y-1/2 text-left items-start",
             },
@@ -319,7 +334,7 @@ const Home = () => {
         <div className="lg:hidden w-full max-w-3xl px-6 space-y-8">
           {/* Product Image */}
           <motion.img
-            src={aligneyeProductImage}
+            src="https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/product_.webp"
             alt="Posture Corrector Neckband"
             className="w-full max-h-[300px] object-contain mx-auto"
             initial={{ opacity: 0, y: 40 }}
@@ -430,7 +445,7 @@ const Home = () => {
             title: "Wear & Connect",
             description:
               "Put on the Posture Corrector Neckband and connect it to your mobile app. It will give you gentle reminders to fix your posture throughout the day.",
-            img: imgStep1,
+            img: "https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/step1.webp",
             reverse: false,
           },
           {
@@ -438,7 +453,7 @@ const Home = () => {
             title: "Track in Real Time",
             description:
               "The Posture Corrector Neckband discreetly monitors your posture and provides instant, subtle vibrations whenever you slouch, helping you become more aware of your alignment.",
-            img: imgStep2,
+            img: "https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/step2.webp",
             reverse: true,
           },
         ].map(({ id, title, description, img, reverse }) => (
@@ -505,28 +520,32 @@ const Home = () => {
             {[
               {
                 id: 1,
-                image: appFeature1,
+                image:
+                  "https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/1000Exercises.webp",
                 title: "1000+ Exercises",
                 description:
                   "Access a vast library of posture-improving exercises tailored to different body types, needs, and fitness levels.",
               },
               {
                 id: 2,
-                image: appFeature2,
+                image:
+                  "https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/20SportsMode.webp",
                 title: "20+ Sports Mode",
                 description:
                   "Track posture dynamics across 20+ sports and activities - from running to cycling - with mode-specific insights.",
               },
               {
                 id: 3,
-                image: appFeature3,
+                image:
+                  "https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/PersonalisedProgressTracking.webp",
                 title: "Personalised Progress Report",
                 description:
                   "Receive detailed posture reports and real-time feedback, helping you measure improvement and stay motivated.",
               },
               {
                 id: 4,
-                image: appFeature4,
+                image:
+                  "https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/Community%26Badges.webp",
                 title: "Community & Badges",
                 description:
                   "Join a growing community, unlock achievement badges, and stay engaged as you improve your posture journey.",
@@ -590,11 +609,11 @@ const Home = () => {
             </p>
             {/* Full text for tablet/desktop */}
             <p className="text-gray-300 text-sm sm:text-base md:text-lg leading-relaxed hidden sm:block">
-              The Posture Corrector Neckband isn't just another wearable - it's a clinically validated
-              posture correction solution developed in collaboration with
-              orthopedic specialists, physiotherapists, and data scientists.
-              Every feature is rooted in research and designed to deliver
-              visible, lasting improvement.
+              The Posture Corrector Neckband isn't just another wearable - it's
+              a clinically validated posture correction solution developed in
+              collaboration with orthopedic specialists, physiotherapists, and
+              data scientists. Every feature is rooted in research and designed
+              to deliver visible, lasting improvement.
             </p>
             <ul className="space-y-4">
               {[
@@ -623,7 +642,7 @@ const Home = () => {
                       </span>{" "}
                       report reduced neck and back pain within{" "}
                       <span className="text-teal-400 font-semibold">
-                        just 3 weeks
+                        just 21 days
                       </span>
                       .
                     </>
@@ -665,7 +684,7 @@ const Home = () => {
           {/* Right Visual */}
           <div className="flex justify-center items-center p-4 sm:p-6 bg-neutral-900 rounded-2xl sm:rounded-3xl shadow-xl border border-neutral-700">
             <img
-              src={doctorImg}
+              src="https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/doctor.webp"
               alt="image of a doctor"
               className="w-full h-full"
             />
@@ -730,7 +749,8 @@ const Home = () => {
           {[
             {
               id: 1,
-              avatar: user1,
+              avatar:
+                "https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/user1.webp",
               text: "Working from home, my posture suffered from long hours at the laptop. Aligneye's gentle nudges were a lifesaver. My chronic back pain has reduced, and I feel so much more productive now. It's a fantastic solution.",
               name: "Vikram Reddy",
               rating: 5,
@@ -738,7 +758,8 @@ const Home = () => {
             },
             {
               id: 2,
-              avatar: user2,
+              avatar:
+                "https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/user2.webp",
               text: "As a teacher, I'm on my feet all day. Aligneye helped me stop slouching and significantly improved my alignment. I now have far less fatigue at the end of the day. Highly recommend to fellow educators!",
               name: "Sandeep Kumar",
               rating: 4,
@@ -746,7 +767,8 @@ const Home = () => {
             },
             {
               id: 3,
-              avatar: user3,
+              avatar:
+                "https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/user3.webp",
               text: "I was skeptical, but the results speak for themselves. After using the neckband, I've noticed a significant and lasting improvement in my posture. I'm now holding myself up straighter without even thinking about it. A fantastic device!",
               name: "Ananya Sharma",
               rating: 5,
@@ -754,7 +776,8 @@ const Home = () => {
             },
             {
               id: 4,
-              avatar: user4,
+              avatar:
+                "https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/user4.webp",
               text: "I used to suffer from constant neck and shoulder pain from my desk job. Neckband's gentle reminders were a game-changer. My pain is almost gone, and I feel so much better after just a few weeks of use.",
               name: "Rohan Patel",
               rating: 3,
@@ -762,7 +785,8 @@ const Home = () => {
             },
             {
               id: 5,
-              avatar: user5,
+              avatar:
+                "https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/user5.webp",
               text: "My posture was a mess from years of desk work. Aligneye's gentle reminders and targeted exercises have made a huge difference. I feel taller and more aligned, and my confidence has improved as a result.",
               name: "Priya Das",
               rating: 4,
@@ -825,7 +849,7 @@ const Home = () => {
           {/* Left: Product Image */}
           <div className="w-full lg:w-1/2 flex justify-center">
             <img
-              src={aligneyeProductImage}
+              src="https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/product_.webp"
               alt="Posture Corrector Neckband"
               className="w-[240px] sm:w-[280px] md:w-[350px] lg:w-[400px] xl:w-[450px] object-contain rounded-xl shadow-lg"
               draggable="false"
@@ -841,27 +865,29 @@ const Home = () => {
               posture - all from one intelligent device. Compact, comfortable,
               and designed to work with your day.
             </p>
-            <div className="flex flex-wrap items-center gap-3 sm:gap-4 mb-4">
-              {/* Original Price */}
-              <div className="text-sm sm:text-base md:text-lg text-gray-400 line-through">
-                ₹6,999
-              </div>
-              {/* Offer Price */}
-              <div className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white">
-                ₹2,999
-              </div>
-              {/* Discount Badge */}
-              <div className="relative flex items-center">
-                <div className="bg-red-500 text-white font-semibold text-xs sm:text-sm px-3 py-1 rounded-full animate-bounce">
-                  60% OFF
+            {priceData && (
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4 mb-4">
+                {/* Offer Price */}
+                <div className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white">
+                  ₹{priceData.sellingPrice.toLocaleString()}
                 </div>
-                <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-400 rounded-full animate-ping"></div>
+                {/* Original Price */}
+                <div className="text-sm sm:text-base md:text-lg text-gray-400 line-through">
+                  ₹{priceData.mrp.toLocaleString()}
+                </div>
+                {/* Discount Badge */}
+                <div className="relative flex items-center">
+                  <div className="bg-red-500 text-white font-semibold text-xs sm:text-sm px-3 py-1 rounded-full animate-bounce">
+                    {priceData.discount}% OFF
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-400 rounded-full animate-ping"></div>
+                </div>
               </div>
-            </div>
+            )}
             {/* Tax Note */}
             <div className="text-sm text-gray-400">Inclusive of all taxes</div>
             <p className="text-sm text-green-500 font-medium">
-              Limited Time Offer – Ends Soon!
+              Limited Time Offer - Ends Soon!
             </p>
             {/* CTA Button */}
             <button
@@ -883,7 +909,9 @@ const Home = () => {
             </div>
             {/* Tax Note */}
             <div className="text-sm text-gray-400 hover:cursor-pointer hover:text-gray-300">
-              T&C Applied.
+              <Link to="/t&c" className="hover:text-white transition">
+                T&C Applied.
+              </Link>
             </div>
           </div>
         </div>
