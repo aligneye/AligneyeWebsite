@@ -8,6 +8,7 @@ const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false); // NEW
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -16,16 +17,13 @@ const Auth = () => {
     setMessage("");
 
     if (isLogin) {
-      // Login
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-
       if (error) setMessage(error.message);
       else navigate("/");
     } else {
-      // Signup
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -33,13 +31,8 @@ const Auth = () => {
           data: { platform: "web" },
         },
       });
-
-      if (error) {
-        setMessage(error.message);
-      } else {
-        // Profile will be created automatically by DB trigger
-        navigate("/");
-      }
+      if (error) setMessage(error.message);
+      else navigate("/");
     }
 
     setLoading(false);
@@ -76,14 +69,26 @@ const Auth = () => {
             className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500"
             required
           />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500"
-            required
-          />
+
+          {/* Password field with show/hide toggle */}
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-black text-sm hover:cursor-pointer"
+            >
+              {showPassword ? "Hide" : "Show"}
+            </button>
+          </div>
+
           <button
             type="submit"
             disabled={loading}
@@ -92,13 +97,16 @@ const Auth = () => {
             {loading ? "Please wait..." : isLogin ? "Login" : "Sign Up"}
           </button>
         </form>
+
         <div className="my-4 text-center text-gray-400">or</div>
+
         <button
           onClick={handleGoogleLogin}
           className="w-full bg-red-500 text-white py-2 rounded-full font-semibold hover:bg-red-400 transition-colors hover:cursor-pointer"
         >
           Continue with Google
         </button>
+
         <p className="mt-4 text-center text-sm text-gray-400">
           {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
           <button

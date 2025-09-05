@@ -176,13 +176,13 @@ const Home = () => {
                 desc: "An AI-powered coach that adapts to your behavior and gently trains you to improve over time.",
               },
               {
-                img: "https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/SmartWalk.webp",
+                img: "https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/Smart_Walk.png",
                 tag: "Posture Tracking On the Go",
                 title: "SMART WALK",
                 desc: "Monitors your walking posture and provides instant haptic feedback to keep you aligned throughout the day.",
               },
               {
-                img: "https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/SmartMeditation.webp",
+                img: "https://aligneye-excercise-datastorage-bucket-2025.s3.us-east-1.amazonaws.com/website_content/assets/Smart_Meditation.png",
                 tag: "Mind-Body Posture Sync",
                 title: "SMART MEDITATION",
                 desc: "Enhance your meditation with posture-aware breathing sessions and gentle alignment reminders.",
