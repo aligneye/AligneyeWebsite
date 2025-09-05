@@ -133,10 +133,10 @@ const Footer = () => {
                       <li className="flex items-center">
                         <Mail className="mr-2 text-teal-400" size={16} />
                         <a
-                          href="mailto:help.aligneye@gmail.com"
+                          href="mailto:support@aligneye.com"
                           className="text-sm"
                         >
-                          help.aligneye@gmail.com
+                          support@aligneye.com
                         </a>
                       </li>
                       <li className="flex items-center">
@@ -201,10 +201,10 @@ const Footer = () => {
               <li className="flex items-center">
                 <Mail className="mr-2 text-teal-400" size={16} />
                 <a
-                  href="mailto:help.aligneye@gmail.com"
+                  href="mailto:support@aligneye.com"
                   className="hover:text-gray-300"
                 >
-                  help.aligneye@gmail.com
+                  support@aligneye.com
                 </a>
               </li>
               <li className="flex items-center">

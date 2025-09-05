@@ -187,10 +187,10 @@ export default function PrivacyPolicy() {
           <li>
             Email:{" "}
             <a
-              href="mailto:help.aligneye@gmail.com"
+              href="mailto:support@aligneye.com"
               className="text-teal-400 underline"
             >
-              help.aligneye@gmail.com
+              support@aligneye.com
             </a>
           </li>
           <li>

@@ -121,10 +121,10 @@ export default function TermsAndConditions() {
         <p>
           If you have questions about these Terms, please contact us at:{" "}
           <a
-            href="mailto:help.aligneye@gmail.com"
+            href="mailto:support@aligneye.com"
             className="text-teal-400 underline"
           >
-            help.aligneye@gmail.com
+            support@aligneye.com
           </a>
         </p>
       </div>
